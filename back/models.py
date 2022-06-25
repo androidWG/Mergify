@@ -1,6 +1,9 @@
+from typing import List
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
+from back.utils import get_id
 
 
 # Create your models here.

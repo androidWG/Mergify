@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 import spotipy
 
 
-class SpotifyAPIManager(spotipy.Spotify):
+class SpotifyManager(spotipy.Spotify):
     def __init__(self, spotify_user):
         self.social_token = spotify_user.socialtoken_set.all()[0]
         super().__init__(self.social_token.token)
