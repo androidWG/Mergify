@@ -1,0 +1,4 @@
+Django~=4.0.5
+spotipy~=2.20.0
+regex~=2022.6.2
+django-allauth~=0.51.0
