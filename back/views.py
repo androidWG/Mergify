@@ -26,9 +26,7 @@ class DeleteView(generic.edit.DeleteView):
 
     def form_valid(self, form):
         if form.data.keys().__contains__("deletePlaylist"):
-            user = ParentPlaylist.objects.get(pk=self.object.id).spotify_user
-            sp = SpotifyManager(user)
-
+            sp = SpotifyManager(self.object.id)
             sp.current_user_unfollow_playlist(self.object.uri)
         return super().form_valid(form)
 
@@ -41,7 +39,7 @@ class EditView(generic.edit.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = ParentPlaylist.objects.get(pk=self.object.id).spotify_user
-        sp = SpotifyManager(user)
+        sp = SpotifyManager(self.object.id)
 
         context["user_playlists"] = sp.get_playlists_not_in_parent(self.object.id, user.uid)
         return context
@@ -50,7 +48,7 @@ class EditView(generic.edit.UpdateView):
 @login_required(login_url="/")
 def merge(request, parent_id):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(parent.spotify_user)
+    sp = SpotifyManager(parent_id)
     if not sp.check_token():
         return HttpResponseRedirect(reverse("home"))
 
@@ -70,16 +68,19 @@ def merge(request, parent_id):
     with transaction.atomic():
         for playlist in parent.playlist_set.all():
             info = sp.playlist(playlist.uri)
-            if (info["tracks"]["total"] != len(playlist.item_set.all())) or (
-                    playlist.snapshot_id != info["snapshot_id"]):
+
+            same_size = (info["tracks"]["total"] != len(playlist.item_set.all()))
+            same_snapshot = (playlist.snapshot_id != info["snapshot_id"])
+            if same_size or same_snapshot:
                 changed = True
 
-                tracks = [x["track"]["id"] for x in sp.get_all_tracks(playlist.uri)]
+                tracks = [x["track"]["id"] for x in sp.playlist_all_tracks(playlist.uri)]
                 playlist.item_set.all().delete()
 
-                for track in tracks:
-                    i = Item.objects.create(uri=track, playlist=playlist)
-                    i.save()
+                with transaction.atomic():
+                    for track in tracks:
+                        i = Item.objects.create(uri=track, playlist=playlist)
+                        i.save()
 
                 playlist.snapshot_id = sp.playlist(playlist.uri)["snapshot_id"]
                 playlist.save()
@@ -90,11 +91,10 @@ def merge(request, parent_id):
         if not parent.allow_duplicates:
             updated_items = remove_duplicates(updated_items)
 
-        current_items = sp.get_all_tracks(parent.uri)
-        sp.delete_all_tracks(parent.uri, [x["track"]["uri"] for x in current_items])
+        sp.playlist_delete_all_tracks(parent.uri)
 
         if len(updated_items) > 0:
-            sp.add_all_tracks(parent.uri, updated_items)
+            sp.playlist_add_tracks(parent.uri, updated_items)
 
         parent.snapshot_id = sp.playlist(parent.uri)["snapshot_id"]
         parent.save()
@@ -125,7 +125,7 @@ def remove_playlists(request, parent_id):
 @login_required(login_url="/")
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(parent.spotify_user)
+    sp = SpotifyManager(parent_id)
     if not sp.check_token():
         return HttpResponseRedirect(reverse("home"))
 

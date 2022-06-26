@@ -5,8 +5,9 @@ from back.models import ParentPlaylist
 
 
 class SpotifyManager(spotipy.Spotify):
-    def __init__(self, spotify_user):
-        self.social_token = spotify_user.socialtoken_set.all()[0]
+    def __init__(self, parent_id: int):
+        self.parent = ParentPlaylist.objects.get(pk=parent_id)
+        self.social_token = self.parent.spotify_user.socialtoken_set.all()[0]
         super().__init__(self.social_token.token)
 
     def check_token(self) -> bool:
@@ -14,17 +15,16 @@ class SpotifyManager(spotipy.Spotify):
             return False
         return True
 
-    def get_playlists_not_in_parent(self, parent_id, user_uid) -> List[Any]:
+    def get_playlists_not_in_parent(self, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
-        parent = ParentPlaylist.objects.get(id=parent_id)
-        for p in parent.playlist_set.all():
+        for p in self.parent.playlist_set.all():
             for o in playlists["items"]:
                 if o["id"] == p.get_id():
                     playlists["items"].remove(o)
 
         return playlists
 
-    def get_all_tracks(self, playlist_id: str) -> Optional[Any]:
+    def playlist_all_tracks(self, playlist_id: str) -> Optional[Any]:
         offset = 0
         tracks = []
 
@@ -35,7 +35,7 @@ class SpotifyManager(spotipy.Spotify):
 
         return tracks
 
-    def delete_all_tracks(self, playlist_id: str, tracks: list[str]):
+    def playlist_delete_tracks(self, playlist_id: str, tracks: list[str]):
         to_delete = []
 
         for i, item in enumerate(tracks):
@@ -44,7 +44,11 @@ class SpotifyManager(spotipy.Spotify):
                 self.playlist_remove_all_occurrences_of_items(playlist_id, to_delete)
                 to_delete.clear()
 
-    def add_all_tracks(self, playlist_id: str, tracks: list[str]):
+    def playlist_delete_all_tracks(self, playlist_id: str):
+        tracks = self.playlist_all_tracks(playlist_id)
+        self.playlist_delete_tracks(playlist_id, [x["track"]["uri"] for x in tracks])
+
+    def playlist_add_tracks(self, playlist_id: str, tracks: list[str]):
         to_add = []
 
         for i, item in enumerate(tracks):
