@@ -1,7 +1,7 @@
-from datetime import datetime
-from back.models import ParentPlaylist
-from typing import Any, List, Optional
 import spotipy
+from datetime import datetime
+from typing import Any, List, Optional
+from back.models import ParentPlaylist
 
 
 class SpotifyManager(spotipy.Spotify):

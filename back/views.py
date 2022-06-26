@@ -4,7 +4,7 @@ from django.views import generic
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
-from .manager import SpotifyManager
+from spotify import SpotifyManager
 from .models import Item, ParentPlaylist, Playlist
 from .utils import remove_duplicates
 
