@@ -14,30 +14,17 @@
             crossorigin="anonymous"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-md navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}">Mergify</a>
-        <div class="flex-grow-1 d-flex justify-content-end me-3">
-            <img class="rounded-circle me-2" style="height: 25px" src="{{ accounts.spotify.0.extra_data.images.0.url }}"
-                 alt="User profile picture">
-            <p class="text-light m-0">{% user_display user %}</p>
-        </div>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            {% block navbar %}
-                <div class="navbar-nav">
-                    <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
-                    <a class="nav-link" href="#">Other Link lol</a>
-                    {% if user.is_authenticated %}
-                        <a class="nav-link" href="{% url 'account_logout' %}">Logout</a>
-                    {% else %}
-                        <a class="nav-link" href="{% provider_login_url 'spotify' %}">Login</a>
-                    {% endif %}
-                </div>
-            {% endblock %}
+        <div class="align-content-center">
+            <div class="nav-link d-flex align-content-center">
+                <img class="rounded-circle me-2 my-auto" style="height: 30px"
+                     src="{{ accounts.spotify.0.extra_data.images.0.url }}"
+                     alt="User profile picture">
+                <p class="badge text-bg-light m-0" style="font-size: medium">{% user_display user %}</p>
+                <a class="btn btn-secondary btn-sm ms-2" href="{% url 'account_logout' %}">Logout</a>
+            </div>
         </div>
     </div>
 </nav>
