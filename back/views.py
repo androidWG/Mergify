@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views import generic
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -9,10 +10,7 @@ from .models import Item, ParentPlaylist, Playlist
 from .utils import remove_duplicates
 
 
-def home(request):
-    return render(request, "back/home.html")
-
-
+@method_decorator(login_required, name="dispatch")
 class IndexView(generic.ListView):
     template_name = "back/index.html"
 
@@ -20,6 +18,7 @@ class IndexView(generic.ListView):
         return ParentPlaylist.objects.filter(user=self.request.user)
 
 
+@method_decorator(login_required, name="dispatch")
 class DeleteView(generic.edit.DeleteView):
     model = ParentPlaylist
     success_url = reverse_lazy("index")
@@ -31,6 +30,7 @@ class DeleteView(generic.edit.DeleteView):
         return super().form_valid(form)
 
 
+@method_decorator(login_required, name="dispatch")
 class EditView(generic.edit.UpdateView):
     model = ParentPlaylist
     fields = ["name", "allow_duplicates"]
@@ -45,7 +45,7 @@ class EditView(generic.edit.UpdateView):
         return context
 
 
-@login_required(login_url="/")
+@login_required()
 def merge(request, parent_id):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
     sp = SpotifyManager(parent_id)
@@ -102,7 +102,16 @@ def merge(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent.id,)))
 
 
-@login_required(login_url="/")
+@login_required()
+class CreateView(generic.edit.CreateView):
+    model = ParentPlaylist
+    fields = ["name", "allow_duplicates"]
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+
+
+@login_required()
 def new_parent(request):
     parent = ParentPlaylist.objects.create(
         name="Merged Playlist",
@@ -113,7 +122,7 @@ def new_parent(request):
     return HttpResponseRedirect(reverse("edit", args=(parent.id,)))
 
 
-@login_required(login_url="/")
+@login_required()
 def remove_playlists(request, parent_id):
     for p in Playlist.objects.filter(parent=ParentPlaylist.objects.get(id=parent_id)):
         for p_id in request.POST.getlist("playlists"):
@@ -122,7 +131,7 @@ def remove_playlists(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
-@login_required(login_url="/")
+@login_required()
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
     sp = SpotifyManager(parent_id)

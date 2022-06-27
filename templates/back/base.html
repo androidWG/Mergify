@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% load socialaccount %}
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +14,7 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}">Mergify</a>
+        <a class="navbar-brand" href="{% url 'index' %}">Mergify</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -20,8 +22,13 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             {% block navbar %}
                 <div class="navbar-nav">
-                    <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+                    <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
                     <a class="nav-link" href="#">Other Link lol</a>
+                    {% if user.is_authenticated %}
+                        <a class="nav-link" href="{% url 'account_logout' %}">Logout</a>
+                    {% else %}
+                        <a class="nav-link" href="{% provider_login_url 'spotify' %}">Login</a>
+                    {% endif %}
                 </div>
             {% endblock %}
         </div>
