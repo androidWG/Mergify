@@ -1,3 +1,4 @@
+from allauth.socialaccount.models import SocialToken
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
@@ -6,9 +7,10 @@ from back.utils import remove_duplicates_hashable
 from spotify import SpotifyManager
 
 
-def merge(parent_id):
+def merge(parent_id, token=None):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(get_token_from_parent(parent_id))
+    social_token = get_token_from_parent(parent_id) if token is None else token
+    sp = SpotifyManager(social_token)
 
     if parent.uri == "" or parent.uri is None:
         response = sp.user_playlist_create(parent.spotify_user.uid,
@@ -56,3 +58,7 @@ def merge(parent_id):
 
         parent.snapshot_id = sp.playlist(parent.uri)["snapshot_id"]
         parent.save()
+
+
+def merge_repeating_task(token: SocialToken, parent_id):
+    pass

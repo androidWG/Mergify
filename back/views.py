@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from spotify import SpotifyManager
-from spotify.merge import merge
+from spotify.merge import merge, merge_repeating_task
 from .models import get_token_from_parent, ParentPlaylist, Playlist
 
 
@@ -89,6 +89,11 @@ def merge_now(request, parent_id):
     merge(parent_id)
 
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+
+
+@login_required()
+def setup_merge_task(request, parent_id):
+    merge_repeating_task(get_token_from_parent(parent_id), parent_id)
 
 
 @login_required()
