@@ -56,7 +56,9 @@
                     <a class="btn btn-secondary" href="{% url 'merge' parentplaylist.id %}">Merge now</a>
                 </div>
             </div>
-            <div class="list-group">
+
+            <p>Total Tracks: <span class="badge text-bg-info">{{ parentplaylist.get_total_tracks }}</span></p>
+            <div class="list-group mt-1">
                 {% for playlist in parentplaylist.playlist_set.all %}
                     <label class="list-group-item d-flex justify-content-between align-items-center user-select-none">
                         <div class="d-flex form-check">

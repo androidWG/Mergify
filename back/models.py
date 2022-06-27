@@ -29,6 +29,13 @@ class BasePlaylist(models.Model):
 class ParentPlaylist(BasePlaylist):
     allow_duplicates = models.BooleanField(default=False)
 
+    def get_total_tracks(self):
+        counter = 0
+        for p in self.playlist_set.all():
+            counter += p.size
+
+        return counter
+
     def get_local_items(self) -> List:
         items = []
         for playlist in self.playlist_set.all():
