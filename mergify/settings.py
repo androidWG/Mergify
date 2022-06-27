@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'back.apps.BackConfig',
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -137,7 +136,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
-SITE_ID = 0
+SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
 SOCIALACCOUNT_STORE_TOKENS = True
