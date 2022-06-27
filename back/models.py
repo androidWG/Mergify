@@ -9,7 +9,7 @@ from back.utils import get_id
 # Create your models here.
 class BasePlaylist(models.Model):
     uri = models.CharField(max_length=96, null=True)
-    name = models.CharField(max_length=512, null=True)
+    name = models.CharField(max_length=512, null=True, default="Merged Playlist")
     size = models.IntegerField(default=0)
     snapshot_id = models.CharField(max_length=128, null=True)
 
