@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from spotify import SpotifyManager
-from .models import Item, ParentPlaylist, Playlist
+from .models import get_token_from_parent, Item, ParentPlaylist, Playlist
 from .utils import remove_duplicates
 
 
@@ -25,7 +25,7 @@ class DeleteView(generic.edit.DeleteView):
 
     def form_valid(self, form):
         if form.data.keys().__contains__("deletePlaylist"):
-            sp = SpotifyManager(self.object.id)
+            sp = SpotifyManager(get_token_from_parent(self.object.id))
             sp.current_user_unfollow_playlist(self.object.uri)
         return super().form_valid(form)
 
@@ -38,17 +38,18 @@ class EditView(generic.edit.UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = ParentPlaylist.objects.get(pk=self.object.id).spotify_user
-        sp = SpotifyManager(self.object.id)
+        parent = ParentPlaylist.objects.get(pk=self.object.id)
+        user = parent.spotify_user
+        sp = SpotifyManager(get_token_from_parent(self.object.id))
 
-        context["user_playlists"] = sp.playlists_not_in_parent(user.uid)
+        context["user_playlists"] = sp.playlists_not_in_parent(parent, user.uid)
         return context
 
 
 @login_required()
 def merge(request, parent_id):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(parent_id)
+    sp = SpotifyManager(get_token_from_parent(parent_id))
     if not sp.check_token():
         return HttpResponseRedirect(reverse("home"))
 
@@ -148,7 +149,7 @@ def remove_playlists(request, parent_id):
 @login_required()
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(parent_id)
+    sp = SpotifyManager(get_token_from_parent(parent_id))
     if not sp.check_token():
         return HttpResponseRedirect(reverse("home"))
 

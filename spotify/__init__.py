@@ -1,13 +1,11 @@
 import spotipy
 from datetime import datetime
 from typing import Any, List, Optional
-from back.models import ParentPlaylist
 
 
 class SpotifyManager(spotipy.Spotify):
-    def __init__(self, parent_id: int):
-        self.parent = ParentPlaylist.objects.get(pk=parent_id)
-        self.social_token = self.parent.spotify_user.socialtoken_set.all()[0]
+    def __init__(self, social_token):
+        self.social_token = social_token
         super().__init__(self.social_token.token)
 
     def check_token(self) -> bool:
@@ -15,14 +13,17 @@ class SpotifyManager(spotipy.Spotify):
             return False
         return True
 
-    def playlists_not_in_parent(self, user_uid) -> List[Any]:
+    def playlists_not_in_parent(self, parent, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
-        for p in self.parent.playlist_set.all():
-            for o in playlists["items"]:
-                if o["id"] == p.get_id() or o["id"] == self.parent.get_id():
+
+        for o in playlists["items"]:
+            if o["id"] == parent.get_id():
+                playlists["items"].remove(o)
+            for p in parent.playlist_set.all():
+                if o["id"] == p.get_id():
                     playlists["items"].remove(o)
 
-        return playlists
+        return playlists["items"]
 
     def playlist_all_tracks(self, playlist_id: str) -> Optional[Any]:
         offset = 0

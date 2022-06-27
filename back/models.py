@@ -68,3 +68,13 @@ class Item(models.Model):
             return True
         else:
             return False
+
+
+def get_token_from_parent(value):
+    parent = ""
+    if type(value) == int:
+        parent = ParentPlaylist.objects.get(pk=value)
+    elif type(value) == ParentPlaylist:
+        parent = value
+
+    return parent.spotify_user.socialtoken_set.all()[0]
