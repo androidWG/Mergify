@@ -10,7 +10,9 @@
         <input class="btn btn-success" type="submit" value="Update" id="parentUpdate">
     </form>
 
-    <h2>Edit playlists</h2>
+    <h2 class="mt-3">Edit</h2>
+    <p>These are the playlists that will be merged into {{ parentplaylist.name }}. You can add below directly from your
+        saved playlists, or link any public playlist to be included in your Merged Playlist.</p>
     <h4>Your playlists</h4>
     <ul class="list-group my-3" style="max-height: 250px; overflow-y: scroll;">
         {% for playlist in user_playlists.items %}
@@ -21,32 +23,41 @@
             </li>
         {% endfor %}
     </ul>
-    <div class="mb-3">
-        <form action="{% url 'add_playlist' parentplaylist.id '0' %}" method="post">
+    <form action="{% url 'add_playlist' parentplaylist.id '0' %}" method="post">
+        {% csrf_token %}
+        <label for="spotifyLink" class="form-label">Spotify playlist link</label>
+        <div class="input-group mb-3">
+            <input type="url" class="form-control" name="playlist_uri" id="spotifyLink" aria-describedby="addLink"
+                   placeholder="https://open.spotify.com/playlist/5swXGA6kwD2hjbQqvJBVck">
+            <button class="btn btn-primary" type="submit" id="addLink">Add</button>
+        </div>
+    </form>
+
+    <div class="my-4">
+        <form action="{% url 'remove_playlists' parentplaylist.id %}" method="post">
             {% csrf_token %}
-            <label for="spotifyLink" class="form-label">Spotify playlist link</label>
-            <div class="input-group mb-3">
-                <input type="url" class="form-control" name="playlist_uri" id="spotifyLink" aria-describedby="addLink"
-                       placeholder="https://open.spotify.com/playlist/5swXGA6kwD2hjbQqvJBVck">
-                <button class="btn btn-primary" type="submit" id="addLink">Add</button>
+            <div class="d-flex justify-content-between">
+                <h3>Added playlists</h3>
+                <div class="justify-content-end">
+                    <button class="btn btn-danger" type="submit">Delete selected</button>
+                    <a class="btn btn-secondary" href="{% url 'merge' parentplaylist.id %}">Merge now</a>
+                </div>
+            </div>
+            <div class="list-group">
+                {% for playlist in parentplaylist.playlist_set.all %}
+                    <label class="list-group-item d-flex justify-content-between align-items-center user-select-none">
+                        <div class="d-flex">
+                            <input class="form-check-input me-3" type="checkbox" name="playlists"
+                                   value="{{ playlist.id }}">
+                            <h5 class="mb-1">{{ playlist.name }}</h5>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ playlist.size }} tracks</span>
+                    </label>
+                {% endfor %}
+                {% if parentplaylist.playlist_set.count == 0 %}
+                    <span class="badge text-bg-warning mx-auto my-4">No added playlists</span>
+                {% endif %}
             </div>
         </form>
     </div>
-    <form action="{% url 'remove_playlists' parentplaylist.id %}" method="post">
-        {% csrf_token %}
-        <button class="btn btn-danger" type="submit">Delete selected</button>
-        <a class="btn btn-secondary" href="{% url 'merge' parentplaylist.id %}">Merge now</a>
-        <div class="list-group">
-            {% for playlist in parentplaylist.playlist_set.all %}
-                <label class="list-group-item d-flex justify-content-between align-items-center user-select-none">
-                    <div class="d-flex">
-                        <input class="form-check-input me-3" type="checkbox" name="playlists"
-                               value="{{ playlist.id }}">
-                        <h5 class="mb-1">{{ playlist.name }}</h5>
-                    </div>
-                    <span class="badge bg-primary rounded-pill">{{ playlist.size }} tracks</span>
-                </label>
-            {% endfor %}
-        </div>
-    </form>
 {% endblock %}

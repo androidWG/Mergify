@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 {% load socialaccount %}
+{% load account %}
+{% get_social_accounts user as accounts %}
 
 <html lang="en">
 <head>
@@ -15,6 +17,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}">Mergify</a>
+        <div class="flex-grow-1 d-flex justify-content-end me-3">
+            <img class="rounded-circle me-2" style="height: 25px" src="{{ accounts.spotify.0.extra_data.images.0.url }}"
+                 alt="User profile picture">
+            <p class="text-light m-0">{% user_display user %}</p>
+        </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -34,7 +41,7 @@
         </div>
     </div>
 </nav>
-<div class="container">
+<div class="container my-4">
     {% block content %}
     {% endblock %}
 </div>
