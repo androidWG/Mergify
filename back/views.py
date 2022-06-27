@@ -147,6 +147,27 @@ def remove_playlists(request, parent_id):
 
 
 @login_required()
+def add_multiple_playlists(request, parent_id):
+    parent = ParentPlaylist.objects.get(pk=parent_id)
+
+    with transaction.atomic():
+        for data in request.POST.getlist("playlists"):
+            uri, size, name = data.split("|")
+
+            playlist = Playlist.objects.create(
+                uri=uri,
+                parent_id=parent_id,
+                name=name,
+                size=size,
+                user=parent.user,
+                spotify_user=parent.spotify_user)
+
+            playlist.save()
+
+    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+
+
+@login_required()
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
     sp = SpotifyManager(get_token_from_parent(parent_id))

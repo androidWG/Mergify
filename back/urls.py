@@ -8,5 +8,6 @@ urlpatterns = [
     path('<int:pk>/', views.EditView.as_view(), name='edit'),
     path('<int:parent_id>/remove/', views.remove_playlists, name='remove_playlists'),
     path('<int:parent_id>/add/<str:child_uri>', views.add_playlist, name='add_playlist'),
+    path('<int:parent_id>/add_multi/', views.add_multiple_playlists, name='add_multiple_playlists'),
     path('<int:parent_id>/merge', views.merge, name='merge'),
 ]

@@ -11,18 +11,31 @@
     </form>
 
     <h2 class="mt-3">Edit</h2>
-    <p>These are the playlists that will be merged into {{ parentplaylist.name }}. You can add below directly from your
+    <p>These are the playlists that will be merged into <i>{{ parentplaylist.name }}</i>. You can add below directly
+        from your
         saved playlists, or link any public playlist to be included in your Merged Playlist.</p>
-    <h4>Your playlists</h4>
-    <ul class="list-group my-3" style="max-height: 250px; overflow-y: scroll;">
-        {% for playlist in user_playlists %}
-            <li value="{{ playlist.uri }}"
-                class="list-group-item d-flex justify-content-between align-items-center">
-                {{ playlist.name }}
-                <a href="{% url 'add_playlist' parentplaylist.id playlist.uri %}" class="btn btn-primary btn-sm">Add</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <form action="{% url 'add_multiple_playlists' parentplaylist.id %}" method="post">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between">
+            <h4>Your playlists</h4>
+            <button class="btn btn-success" type="submit">Add selected</button>
+        </div>
+        <div class="list-group mt-2" style="max-height: 250px; overflow-y: scroll;">
+            {% for playlist in user_playlists.items %}
+                <label class="list-group-item d-flex justify-content-between align-items-center user-select-none">
+                    <div class="d-flex form-check">
+                        <input class="form-check-input me-3" type="checkbox" name="playlists"
+                               value="{{ playlist.id }}|{{ playlist.tracks.total }}|{{ playlist.name }}">
+                        <h5 class="mb-1">{{ playlist.name }}</h5>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ playlist.tracks.total }} tracks</span>
+                </label>
+            {% endfor %}
+            {% if parentplaylist.playlist_set.count == 0 %}
+                <span class="badge text-bg-warning mx-auto my-4">No added playlists</span>
+            {% endif %}
+        </div>
+    </form>
     <form action="{% url 'add_playlist' parentplaylist.id '0' %}" method="post">
         {% csrf_token %}
         <label for="spotifyLink" class="form-label">Spotify playlist link</label>
@@ -47,7 +60,7 @@
                 {% for playlist in parentplaylist.playlist_set.all %}
                     <label class="list-group-item d-flex justify-content-between align-items-center user-select-none">
                         <div class="d-flex form-check">
-                            <input class="form-check-input me-3" type="radio" name="playlists"
+                            <input class="form-check-input me-3" type="checkbox" name="playlists"
                                    value="{{ playlist.id }}">
                             <h5 class="mb-1">{{ playlist.name }}</h5>
                         </div>
