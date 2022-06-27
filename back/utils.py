@@ -7,8 +7,28 @@ def get_id(uri: str) -> str:
     return regex.search(r"(?!spotify)?+(?!.com\/\w+\/)?(?!:\w+:)?[a-z|A-Z|\d]{20,}", uri)[0]
 
 
-def remove_duplicates(items: List) -> List:
+def remove_duplicates_hashable(items: list) -> list:
     return list(dict.fromkeys(items))
+
+
+def remove_duplicates(items: list, key_name: str) -> list:
+    counter = {}
+    updated_list = items
+    for x in updated_list:
+        if not counter.keys().__contains__(x[key_name]):
+            counter[x[key_name]] = 1
+        else:
+            counter[x[key_name]] += 1
+
+    for c in counter.keys():
+        if counter[c] > 1:
+            for i in range(0, counter[c]):
+                for x in updated_list:
+                    if x[key_name] == c:
+                        updated_list.remove(x)
+                        break
+
+    return items
 
 
 def difference(parent: List, child: List) -> Tuple[List[str], List[str]]:

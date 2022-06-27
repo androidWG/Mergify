@@ -1,6 +1,7 @@
 import spotipy
 from datetime import datetime
 from typing import Any, List, Optional
+from back.utils import remove_duplicates
 
 
 class SpotifyManager(spotipy.Spotify):
@@ -15,15 +16,17 @@ class SpotifyManager(spotipy.Spotify):
 
     def playlists_not_in_parent(self, parent, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
+        playlists["items"] = remove_duplicates(playlists["items"], "snapshot_id")
 
         for o in playlists["items"]:
             if o["id"] == parent.get_id():
                 playlists["items"].remove(o)
-            for p in parent.playlist_set.all():
-                if o["id"] == p.get_id():
-                    playlists["items"].remove(o)
+            else:
+                for p in parent.playlist_set.all():
+                    if o["id"] == p.get_id():
+                        playlists["items"].remove(o)
 
-        return playlists["items"]
+        return playlists
 
     def playlist_all_tracks(self, playlist_id: str) -> Optional[Any]:
         offset = 0

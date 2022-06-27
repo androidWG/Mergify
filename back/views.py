@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from spotify import SpotifyManager
 from .models import get_token_from_parent, Item, ParentPlaylist, Playlist
-from .utils import remove_duplicates
+from .utils import remove_duplicates_hashable
 
 
 @method_decorator(login_required, name="dispatch")
@@ -90,7 +90,7 @@ def merge(request, parent_id):
 
     if changed or sp.playlist(parent.uri)["snapshot_id"] != parent.snapshot_id:
         if not parent.allow_duplicates:
-            updated_items = remove_duplicates(updated_items)
+            updated_items = remove_duplicates_hashable(updated_items)
 
         sp.playlist_delete_all_tracks(parent.uri)
 
