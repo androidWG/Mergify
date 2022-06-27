@@ -102,24 +102,38 @@ def merge(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent.id,)))
 
 
-@login_required()
-class CreateView(generic.edit.CreateView):
+@method_decorator(login_required, name="dispatch")
+class ParentPlaylistCreateView(generic.edit.CreateView):
     model = ParentPlaylist
     fields = ["name", "allow_duplicates"]
+    template_name = "back/create.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sp_user = self.request.user.socialaccount_set.all()[0]
+        sp = SpotifyManager(sp_user.socialtoken_set.all()[0])
+
+        context["user_playlists"] = sp.user_playlists(sp_user.uid)
+        return context
 
     def form_valid(self, form):
+        sp_user = self.request.user.socialaccount_set.all()[0]
+
+        if form.data.keys().__contains__("create_playlist"):
+            sp = SpotifyManager(sp_user.socialtoken_set.all()[0])
+
+            response = sp.user_playlist_create(sp_user.uid,
+                                               form.data["name"],
+                                               public=False,
+                                               description="Playlist merged by Mergify")
+            form.instance.uri = response["uri"]
+        else:
+            form.instance.uri = form.data["selected"]
+
+        form.instance.user = self.request.user
+        form.instance.spotify_user = sp_user
+
         return super().form_valid(form)
-
-
-@login_required()
-def new_parent(request):
-    parent = ParentPlaylist.objects.create(
-        name="Merged Playlist",
-        user=request.user,
-        spotify_user=request.user.socialaccount_set.all()[0],
-    )
-    parent.save()
-    return HttpResponseRedirect(reverse("edit", args=(parent.id,)))
 
 
 @login_required()

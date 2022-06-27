@@ -1,0 +1,54 @@
+{% extends "back/base.html" %}
+
+{% block title %}New Merged Playlist{% endblock %}
+
+{% block content %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        Select an existing playlist to be your merged playlist:
+        <div class="list-group my-3" style="max-height: 250px; overflow-y: scroll;">
+            {% for playlist in user_playlists.items %}
+                <label class="list-group-item label-class">
+                    <input class="form-check-input me-1 input-class" type="radio" value="{{ playlist.id }}"
+                           name="selected">
+                    {{ playlist.name }}
+                </label>
+            {% endfor %}
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" onchange="createNew_onchange()" type="checkbox" name="create_playlist"
+                   value="True" id="createNew">
+            <label class="form-check-label" for="createNew">
+                Create a new playlist on Spotify for me
+            </label>
+        </div>
+        <input class="btn btn-success" type="submit" value="Save">
+    </form>
+
+    <script>
+        function createNew_onchange() {
+            let radios = document.getElementsByClassName("input-class");
+            if (document.getElementById("createNew").checked) {
+                for (let i = 0; i < radios.length; i++) {
+                    radios[i].disabled = true;
+                }
+            } else {
+                for (let i = 0; i < radios.length; i++) {
+                    radios[i].disabled = false;
+                }
+            }
+
+            let labels = document.getElementsByClassName("label-class");
+            if (document.getElementById("createNew").checked) {
+                for (let i = 0; i < labels.length; i++) {
+                    labels[i].classList.add("text-muted")
+                }
+            } else {
+                for (let i = 0; i < labels.length; i++) {
+                    labels[i].classList.remove("text-muted")
+                }
+            }
+        }
+    </script>
+{% endblock %}
