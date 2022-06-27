@@ -41,7 +41,7 @@ class EditView(generic.edit.UpdateView):
         user = ParentPlaylist.objects.get(pk=self.object.id).spotify_user
         sp = SpotifyManager(self.object.id)
 
-        context["user_playlists"] = sp.get_playlists_not_in_parent(self.object.id, user.uid)
+        context["user_playlists"] = sp.playlists_not_in_parent(user.uid)
         return context
 
 

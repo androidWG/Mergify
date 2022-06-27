@@ -15,11 +15,11 @@ class SpotifyManager(spotipy.Spotify):
             return False
         return True
 
-    def get_playlists_not_in_parent(self, user_uid) -> List[Any]:
+    def playlists_not_in_parent(self, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
         for p in self.parent.playlist_set.all():
             for o in playlists["items"]:
-                if o["id"] == p.get_id():
+                if o["id"] == p.get_id() or o["id"] == self.parent.get_id():
                     playlists["items"].remove(o)
 
         return playlists
