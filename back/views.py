@@ -116,35 +116,35 @@ class ParentPlaylistCreateView(generic.edit.CreateView):
 
 
 @check_user_permission
-def merge_now(request, parent_id):
-    task_id = async_task(merge, parent_id)
+def merge_now(request, pk):
+    task_id = async_task(merge, pk)
     print(f"Running task with id {task_id}")
 
-    if Schedule.objects.filter(name=parent_id).count() == 0:
-        create_schedule(parent_id)
+    if Schedule.objects.filter(name=pk).count() == 0:
+        create_schedule(pk)
 
-    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
-
-
-@check_user_permission
-def setup_merge_task(request, parent_id):
-    create_schedule(parent_id)
-
-    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+    return HttpResponseRedirect(reverse("edit", args=(pk,)))
 
 
 @check_user_permission
-def remove_multiple_playlists(request, parent_id):
-    for p in Playlist.objects.filter(parent=ParentPlaylist.objects.get(id=parent_id)):
+def setup_merge_task(request, pk):
+    create_schedule(pk)
+
+    return HttpResponseRedirect(reverse("edit", args=(pk,)))
+
+
+@check_user_permission
+def remove_multiple_playlists(request, pk):
+    for p in Playlist.objects.filter(parent=ParentPlaylist.objects.get(id=pk)):
         for p_id in request.POST.getlist("playlists"):
             if p.id == int(p_id):
                 p.delete()
-    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+    return HttpResponseRedirect(reverse("edit", args=(pk,)))
 
 
 @check_user_permission
-def add_multiple_playlists(request, parent_id):
-    parent = ParentPlaylist.objects.get(pk=parent_id)
+def add_multiple_playlists(request, pk):
+    parent = ParentPlaylist.objects.get(pk=pk)
 
     with transaction.atomic():
         for data in request.POST.getlist("playlists"):
@@ -152,7 +152,7 @@ def add_multiple_playlists(request, parent_id):
 
             playlist = Playlist.objects.create(
                 uri=uri,
-                parent_id=parent_id,
+                parent_id=pk,
                 name=name,
                 size=size,
                 user=parent.user,
@@ -160,24 +160,24 @@ def add_multiple_playlists(request, parent_id):
 
             playlist.save()
 
-    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+    return HttpResponseRedirect(reverse("edit", args=(pk,)))
 
 
 @check_user_permission
-def add_playlist(request, parent_id, child_uri):
-    parent = get_object_or_404(ParentPlaylist, pk=parent_id)
-    sp = SpotifyManager(get_token_from_parent(parent_id))
+def add_playlist(request, pk, child_uri):
+    parent = get_object_or_404(ParentPlaylist, pk=pk)
+    sp = SpotifyManager(get_token_from_parent(pk))
 
     uri = request.POST["playlist_uri"] if child_uri == "0" else child_uri
     response = sp.playlist(uri)
 
     playlist = Playlist.objects.create(
         uri=uri,
-        parent_id=parent_id,
+        parent_id=pk,
         name=response["name"],
         size=response["tracks"]["total"],
         user=parent.user,
         spotify_user=parent.spotify_user)
 
     playlist.save()
-    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
+    return HttpResponseRedirect(reverse("edit", args=(pk,)))
