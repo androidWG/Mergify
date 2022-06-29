@@ -33,7 +33,6 @@ class SpotifyManager(spotipy.Spotify):
             else:
                 for p in parent.playlist_set.all():
                     if o["id"] == p.get_id():
-                        print(type(playlists["items"]))
                         playlists["items"].remove(o)
 
         return playlists
