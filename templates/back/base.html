@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 {% load socialaccount %}
 {% load account %}
-{% get_social_accounts user as accounts %}
 
 <html lang="en">
 <head>
@@ -18,13 +17,21 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}">Mergify</a>
         <div class="align-content-center">
-            <div class="nav-link d-flex align-content-center">
-                <img class="rounded-circle me-2 my-auto" style="height: 30px"
-                     src="{{ accounts.spotify.0.extra_data.images.0.url }}"
-                     alt="User profile picture">
-                <p class="badge text-bg-light m-0" style="font-size: medium">{% user_display user %}</p>
-                <a class="btn btn-secondary btn-sm ms-2" href="{% url 'account_logout' %}">Logout</a>
-            </div>
+            {% if user.is_authenticated %}
+                {% get_social_accounts user as accounts %}
+                <div class="nav-link d-flex align-content-center">
+                    <img class="rounded-circle me-2 my-auto" style="height: 30px"
+                         src="{{ accounts.spotify.0.extra_data.images.0.url }}"
+                         alt="User profile picture">
+                    <p class="badge text-bg-light m-0" style="font-size: medium">{% user_display user %}</p>
+                    <a class="btn btn-secondary btn-sm ms-2" href="{% url 'account_logout' %}">Logout</a>
+                </div>
+            {% else %}
+                <form method="post" action="{% url 'spotify_login' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary btn-sm ms-2" type="submit">Login with Spotify</button>
+                </form>
+            {% endif %}
         </div>
     </div>
 </nav>

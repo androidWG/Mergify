@@ -13,12 +13,14 @@ from spotify.merge import create_schedule, merge
 from .models import get_token_from_parent, ParentPlaylist, Playlist
 
 
-@method_decorator(login_required, name="dispatch")
 class IndexView(generic.ListView):
     template_name = "back/index.html"
 
     def get_queryset(self):
-        return ParentPlaylist.objects.filter(user=self.request.user)
+        if self.request.user.is_authenticated:
+            return ParentPlaylist.objects.filter(user=self.request.user)
+        else:
+            return None
 
 
 @method_decorator(login_required, name="dispatch")
