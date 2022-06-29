@@ -1,6 +1,6 @@
-from allauth.socialaccount.models import SocialToken
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django_q.models import Schedule
 
 from back.models import get_token_from_parent, Item, ParentPlaylist
 from back.utils import remove_duplicates_hashable

@@ -1,6 +1,8 @@
-import spotipy
 from datetime import datetime
 from typing import Any, List, Optional
+
+import spotipy
+
 from back.utils import remove_duplicates
 from spotify.token_manager import refresh_token
 
