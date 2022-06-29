@@ -9,7 +9,7 @@ from django_q.models import Schedule
 from django_q.tasks import async_task
 
 from spotify import SpotifyManager
-from spotify.merge import merge
+from spotify.merge import create_schedule, merge
 from .models import get_token_from_parent, ParentPlaylist, Playlist
 
 
@@ -85,18 +85,20 @@ class ParentPlaylistCreateView(generic.edit.CreateView):
 
 @login_required()
 def merge_now(request, parent_id):
-    sp = SpotifyManager(get_token_from_parent(parent_id))
-    if not sp.check_token():
-        return HttpResponseRedirect(reverse("home"))
+    task_id = async_task(merge, parent_id)
+    print(f"Running task with id {task_id}")
 
-    merge(parent_id)
+    if Schedule.objects.filter(name=parent_id).count() == 0:
+        create_schedule(parent_id)
 
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
 @login_required()
 def setup_merge_task(request, parent_id):
-    merge_repeating_task(get_token_from_parent(parent_id), parent_id)
+    create_schedule(parent_id)
+
+    return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
 @login_required()
@@ -133,8 +135,6 @@ def add_multiple_playlists(request, parent_id):
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
     sp = SpotifyManager(get_token_from_parent(parent_id))
-    if not sp.check_token():
-        return HttpResponseRedirect(reverse("home"))
 
     uri = request.POST["playlist_uri"] if child_uri == "0" else child_uri
     response = sp.playlist(uri)

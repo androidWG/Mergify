@@ -60,5 +60,8 @@ def merge(parent_id, token=None):
         parent.save()
 
 
-def merge_repeating_task(token: SocialToken, parent_id):
-    pass
+def create_schedule(parent_id):
+    Schedule.objects.create(func="spotify.merge.merge",
+                            args=parent_id,
+                            schedule_type=Schedule.MINUTES,
+                            minutes=2)

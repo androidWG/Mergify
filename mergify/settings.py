@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
     'back.apps.BackConfig',
     'allauth',
     'allauth.account',
@@ -154,4 +155,16 @@ SOCIALACCOUNT_PROVIDERS = {
             'approval_prompt': 'auto'
         }
     }
+}
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 4,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+    'sync': True,
+    'catch_up': False
 }
