@@ -1,7 +1,11 @@
+from functools import wraps
+from urllib.parse import urlparse
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, resolve_url
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import generic
@@ -11,6 +15,32 @@ from django_q.tasks import async_task
 from spotify import SpotifyManager
 from spotify.merge import create_schedule, merge
 from .models import get_token_from_parent, ParentPlaylist, Playlist
+
+
+def check_user_permission(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            path = request.build_absolute_uri()
+            resolved_login_url = resolve_url(settings.LOGIN_URL)
+            # If the login url is the same scheme and net location then just
+            # use the path as the "next" url.
+            login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
+            current_scheme, current_netloc = urlparse(path)[:2]
+            if (not login_scheme or login_scheme == current_scheme) and (
+                    not login_netloc or login_netloc == current_netloc
+            ):
+                path = request.get_full_path()
+            from django.contrib.auth.views import redirect_to_login
+
+            return redirect_to_login(path, reverse("spotify_login"), "next")
+
+        if request.user == ParentPlaylist.objects.filter(pk=kwargs["pk"])[0].user:
+            return view_func(request, *args, **kwargs)
+
+        raise Http404("Object not found")
+
+    return _wrapped_view
 
 
 class IndexView(generic.ListView):
@@ -23,7 +53,7 @@ class IndexView(generic.ListView):
             return None
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(check_user_permission, name="dispatch")
 class ParentPlaylistDeleteView(generic.edit.DeleteView):
     model = ParentPlaylist
     success_url = reverse_lazy("index")
@@ -35,7 +65,7 @@ class ParentPlaylistDeleteView(generic.edit.DeleteView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(check_user_permission, name="dispatch")
 class ParentPlaylistEditView(generic.edit.UpdateView):
     model = ParentPlaylist
     fields = ["name", "allow_duplicates"]
@@ -85,7 +115,7 @@ class ParentPlaylistCreateView(generic.edit.CreateView):
         return super().form_valid(form)
 
 
-@login_required()
+@check_user_permission
 def merge_now(request, parent_id):
     task_id = async_task(merge, parent_id)
     print(f"Running task with id {task_id}")
@@ -96,14 +126,14 @@ def merge_now(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
-@login_required()
+@check_user_permission
 def setup_merge_task(request, parent_id):
     create_schedule(parent_id)
 
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
-@login_required()
+@check_user_permission
 def remove_multiple_playlists(request, parent_id):
     for p in Playlist.objects.filter(parent=ParentPlaylist.objects.get(id=parent_id)):
         for p_id in request.POST.getlist("playlists"):
@@ -112,7 +142,7 @@ def remove_multiple_playlists(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
-@login_required()
+@check_user_permission
 def add_multiple_playlists(request, parent_id):
     parent = ParentPlaylist.objects.get(pk=parent_id)
 
@@ -133,7 +163,7 @@ def add_multiple_playlists(request, parent_id):
     return HttpResponseRedirect(reverse("edit", args=(parent_id,)))
 
 
-@login_required()
+@check_user_permission
 def add_playlist(request, parent_id, child_uri):
     parent = get_object_or_404(ParentPlaylist, pk=parent_id)
     sp = SpotifyManager(get_token_from_parent(parent_id))
