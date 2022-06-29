@@ -6,7 +6,18 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        Select an existing playlist to be your merged playlist:
+        <p>If you allow duplicates, if two playlists contain the same track, that track will be added twice (or however
+            many times that track appears in your selected playlists).</p>
+        <h4>Select an existing playlist to be your merged playlist</h4>
+        <p>Contents on the existing playlist will be <b>permanently deleted</b> and replaced with the tracks from the
+            playlists you'll add to this merged playlist.</p>
+        <div class="form-check mb-3">
+            <input class="form-check-input" onchange="createNew_onchange()" type="checkbox" name="create_playlist"
+                   value="True" id="createNew">
+            <label class="form-check-label" for="createNew">
+                Create a new playlist on Spotify for me
+            </label>
+        </div>
         <div class="list-group my-3" style="max-height: 250px; overflow-y: scroll;">
             {% for playlist in user_playlists.items %}
                 <label class="list-group-item label-class">
@@ -15,13 +26,6 @@
                     {{ playlist.name }}
                 </label>
             {% endfor %}
-        </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" onchange="createNew_onchange()" type="checkbox" name="create_playlist"
-                   value="True" id="createNew">
-            <label class="form-check-label" for="createNew">
-                Create a new playlist on Spotify for me
-            </label>
         </div>
         <input class="btn btn-success" type="submit" value="Save">
     </form>
