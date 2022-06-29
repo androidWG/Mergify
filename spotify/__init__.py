@@ -24,14 +24,16 @@ class SpotifyManager(spotipy.Spotify):
 
     def playlists_not_in_parent(self, parent, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
-        playlists["items"] = remove_duplicates(playlists["items"], "snapshot_id")
+        playlists["items"] = remove_duplicates(playlists["items"], "id")
+        items_list = playlists["items"].copy()
 
-        for o in playlists["items"]:
+        for o in items_list:
             if o["id"] == parent.get_id():
                 playlists["items"].remove(o)
             else:
                 for p in parent.playlist_set.all():
                     if o["id"] == p.get_id():
+                        print(type(playlists["items"]))
                         playlists["items"].remove(o)
 
         return playlists
