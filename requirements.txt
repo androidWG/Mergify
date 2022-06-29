@@ -3,3 +3,4 @@ spotipy~=2.20.0
 regex~=2022.6.2
 django-allauth~=0.51.0
 python-dotenv~=0.20.0
+requests~=2.28.0

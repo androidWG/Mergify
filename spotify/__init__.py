@@ -2,17 +2,23 @@ import spotipy
 from datetime import datetime
 from typing import Any, List, Optional
 from back.utils import remove_duplicates
+from spotify.token_manager import refresh_token
 
 
 class SpotifyManager(spotipy.Spotify):
     def __init__(self, social_token):
-        self.social_token = social_token
-        super().__init__(self.social_token.token)
+        if social_token.expires_at.timestamp() < datetime.now().timestamp():
+            refresh_token(social_token)
+        self._social_token = social_token
+        super().__init__(self._social_token.token)
 
-    def check_token(self) -> bool:
-        if self.social_token.expires_at.timestamp() < datetime.now().timestamp():
-            return False
-        return True
+    @property
+    def auth(self):
+        if self._social_token.expires_at.timestamp() < datetime.now().timestamp():
+            refresh_token(self._social_token)
+
+        self._auth = self._social_token.token
+        return self._social_token.token
 
     def playlists_not_in_parent(self, parent, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
