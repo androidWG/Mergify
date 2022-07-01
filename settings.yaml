@@ -15,6 +15,7 @@ dev:
 production:
   ALLOWED_HOSTS:
     - 'mergify.net'
+    - 'mergify.herokuapp.com'
   DEBUG: False
   Q_CLUSTER:
     name: DjangORM
