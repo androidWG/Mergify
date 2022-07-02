@@ -9,3 +9,4 @@ django-q~=1.3.9
 mysqlclient~=2.1.1
 psycopg2~=2.9.1
 gunicorn~=20.1.0
+django-database-url~=1.0.3
