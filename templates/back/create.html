@@ -21,7 +21,8 @@
         <div class="list-group my-3" style="max-height: 250px; overflow-y: scroll;">
             {% for playlist in user_playlists.items %}
                 <label class="list-group-item label-class">
-                    <input class="form-check-input me-1 input-class" type="radio" value="{{ playlist.id }}"
+                    <input class="form-check-input me-1 input-class" type="radio"
+                           value="{{ playlist.id }}|{{ playlist.name }}"
                            name="selected">
                     {{ playlist.name }}
                 </label>

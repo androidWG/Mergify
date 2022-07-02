@@ -100,6 +100,7 @@ class ParentPlaylistCreateView(generic.edit.CreateView):
 
     def form_valid(self, form):
         sp_user = self.request.user.socialaccount_set.all()[0]
+        uri, name = form.data["selected"].split("|", 1)
 
         if form.data.keys().__contains__("create_playlist"):
             sp = SpotifyManager(sp_user.socialtoken_set.all()[0])
@@ -110,7 +111,8 @@ class ParentPlaylistCreateView(generic.edit.CreateView):
                                                description="Playlist merged by Mergify")
             form.instance.uri = response["uri"]
         else:
-            form.instance.uri = form.data["selected"]
+            form.instance.uri = uri
+            form.instance.name = name
 
         form.instance.user = self.request.user
         form.instance.spotify_user = sp_user
