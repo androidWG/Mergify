@@ -11,7 +11,6 @@ dev:
     bulk: 10
     orm: default
     catch_up: False
-    sync: True
 production:
   ALLOWED_HOSTS:
     - 'mergify.net'
