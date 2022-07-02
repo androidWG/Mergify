@@ -11,6 +11,10 @@ dev:
     bulk: 10
     orm: default
     catch_up: False
+  DATABASES:
+    'default':
+      NAME: db.sqlite3
+      ENGINE: django.db.backends.sqlite3
 production:
   ALLOWED_HOSTS:
     - 'mergify.net'
