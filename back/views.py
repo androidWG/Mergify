@@ -35,8 +35,11 @@ def check_user_permission(view_func):
 
             return redirect_to_login(path, reverse("spotify_login"), "next")
 
-        if request.user == ParentPlaylist.objects.filter(pk=kwargs["pk"])[0].user:
-            return view_func(request, *args, **kwargs)
+        try:
+            if request.user == ParentPlaylist.objects.filter(pk=kwargs["pk"])[0].user:
+                return view_func(request, *args, **kwargs)
+        except IndexError:
+            pass
 
         raise Http404("Object not found")
 
