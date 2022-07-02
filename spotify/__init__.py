@@ -3,6 +3,7 @@ from typing import Any, List, Optional
 
 import spotipy
 
+from back.models import ParentPlaylist
 from back.utils import remove_duplicates
 from spotify.token_manager import refresh_token
 
@@ -24,11 +25,15 @@ class SpotifyManager(spotipy.Spotify):
 
     def playlists_not_in_parent(self, parent, user_uid) -> List[Any]:
         playlists = self.user_playlists(user_uid)
+        parent_ids = [x.get_id() for x in ParentPlaylist.objects.all()]
+
         playlists["items"] = remove_duplicates(playlists["items"], "id")
         items_list = playlists["items"].copy()
 
         for o in items_list:
             if o["id"] == parent.get_id():
+                playlists["items"].remove(o)
+            elif parent_ids.__contains__(o["id"]):
                 playlists["items"].remove(o)
             else:
                 for p in parent.playlist_set.all():
