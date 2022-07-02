@@ -31,8 +31,8 @@
                     <span class="badge bg-primary rounded-pill">{{ playlist.tracks.total }} tracks</span>
                 </label>
             {% endfor %}
-            {% if parentplaylist.playlist_set.count == 0 %}
-                <span class="badge text-bg-warning mx-auto my-4">No added playlists</span>
+            {% if user_playlists.items.count == 0 %}
+                <span class="badge text-bg-warning mx-auto my-4">No playlists from your account</span>
             {% endif %}
         </div>
     </form>
